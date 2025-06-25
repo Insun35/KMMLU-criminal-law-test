@@ -12,13 +12,6 @@ RAW_DATA_PATH.mkdir(parents=True, exist_ok=True)
 LBOX_OUT_FILE = RAW_DATA_PATH / "ljp_criminal.jsonl"
 
 
-# TODO: Move to utils
-def save_to_json(data, out_file: Path):
-    print("💾 Saving to JSON ...")
-    with out_file.open("w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-
 def load_kmmlu_test(save: bool = True):
     print("🔄 Loading test set ...")
     test_set = load_dataset("HAERAE-HUB/KMMLU", "Criminal-Law", split="test")
