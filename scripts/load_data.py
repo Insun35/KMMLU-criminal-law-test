@@ -16,7 +16,9 @@ def load_kmmlu_test(save: bool = True):
     print("🔄 Loading test set ...")
     test_set = load_dataset("HAERAE-HUB/KMMLU", "Criminal-Law", split="test")
     if save:
-        save_to_json(test_set.to_list(), KMMLU_OUT_FILE)
+        print("💾 Saving to JSON ...")
+        with KMMLU_OUT_FILE.open("w", encoding="utf-8") as f:
+            json.dump(test_set.to_list(), f, ensure_ascii=False, indent=2)
         print(f"✅ Successfully saved {len(test_set)} questions")
     return test_set
 
@@ -39,4 +41,4 @@ def load_ljp_criminal_data(save: bool = True):
 
 if __name__ == "__main__":
     load_kmmlu_test()
-    load_ljp_criminal_data()
+    # load_ljp_criminal_data()
