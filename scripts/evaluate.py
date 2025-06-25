@@ -13,7 +13,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 BATCH_DIR = Path("data/openai_batch")
 EVAL_INPUT = BATCH_DIR / "eval_input.jsonl"
 EVAL_OUTPUT = BATCH_DIR / "eval_output.jsonl"
-SCORE_FILE = Path("score.txt")
+SCORE_FILE = Path("data/score.txt")
 
 POLL_INTERVAL = 60
 
