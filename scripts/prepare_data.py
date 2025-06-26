@@ -13,15 +13,15 @@ from dotenv import load_dotenv
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-RAW_FILE = Path("data/raw/ljp_criminal.jsonl")
+RAW_FILE = Path("data/raw/lbox_criminal.jsonl")
 BATCH_DIR = Path("data/openai_batch")
 BATCH_DIR.mkdir(parents=True, exist_ok=True)
-LJP_BATCH_INPUT = BATCH_DIR / "ljp_batch_input.jsonl"
-LJP_BATCH_OUTPUT = BATCH_DIR / "ljp_batch_output.jsonl"
+LBOX_BATCH_INPUT = BATCH_DIR / "lbox_batch_input.jsonl"
+LBOX_BATCH_OUTPUT = BATCH_DIR / "lbox_batch_output.jsonl"
 
 EMBED_DIR = Path("data/embeddings")
 EMBED_DIR.mkdir(parents=True, exist_ok=True)
-LJP_CHUNKS_FILE = EMBED_DIR / "ljp_text_chunks.json"
+LBOX_CHUNKS_FILE = EMBED_DIR / "lbox_text_chunks.json"
 
 BATCH_POLL_INTERVAL = 60  # seconds between status checks
 EMBED_MODEL = "text-embedding-3-small"
@@ -64,7 +64,7 @@ def load_and_chunk():
 
 
 def build_batch_input(chunks: list[str]):
-    with LJP_BATCH_INPUT.open("w", encoding="utf-8") as f:
+    with LBOX_BATCH_INPUT.open("w", encoding="utf-8") as f:
         for idx, chunk in enumerate(chunks, start=1):
             custom_id = f"chunk-{idx:05d}"
             record = {
@@ -75,14 +75,16 @@ def build_batch_input(chunks: list[str]):
             }
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
     # Save the chunks list to disk for later alignment
-    with LJP_CHUNKS_FILE.open("w", encoding="utf-8") as f:
+    with LBOX_CHUNKS_FILE.open("w", encoding="utf-8") as f:
         json.dump(chunks, f, ensure_ascii=False)
     print("Batch input JSONL and chunk list saved.")
 
 
 def submit_batch(client: OpenAI):
     print("Uploading batch input file to OpenAI…")
-    upload_resp = client.files.create(file=open(LJP_BATCH_INPUT, "rb"), purpose="batch")
+    upload_resp = client.files.create(
+        file=open(LBOX_BATCH_INPUT, "rb"), purpose="batch"
+    )
     input_file_id = upload_resp.id
     print("Uploaded. input_file_id =", input_file_id)
 
@@ -112,17 +114,17 @@ def download_results(client: OpenAI, status):
     file_id = status.output_files[0]
     print("Downloading results file:", file_id)
     content = client.files.content(file_id).text
-    with LJP_BATCH_OUTPUT.open("w", encoding="utf-8") as f:
+    with LBOX_BATCH_OUTPUT.open("w", encoding="utf-8") as f:
         f.write(content)
     print("Batch output JSONL saved.")
 
 
 def build_faiss_index():
     # Load chunks
-    chunks = json.loads(LJP_CHUNKS_FILE.read_text(encoding="utf-8"))
+    chunks = json.loads(LBOX_CHUNKS_FILE.read_text(encoding="utf-8"))
     # Parse embeddings from batch output
     records = [
-        json.loads(line) for line in LJP_BATCH_OUTPUT.open("r", encoding="utf-8")
+        json.loads(line) for line in LBOX_BATCH_OUTPUT.open("r", encoding="utf-8")
     ]
     # Sort by custom_id to align with chunks
     records.sort(key=lambda r: int(r["custom_id"].split("-")[1]))
@@ -131,7 +133,7 @@ def build_faiss_index():
     vecs_np = np.array(embeddings, dtype="float32")
     index = faiss.IndexFlatIP(vecs_np.shape[1])
     index.add(vecs_np)
-    faiss.write_index(index, str(EMBED_DIR / "ljp_index.faiss"))
+    faiss.write_index(index, str(EMBED_DIR / "lbox_index.faiss"))
     print("FAISS index built and saved.")
 
 
