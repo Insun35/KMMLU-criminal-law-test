@@ -5,8 +5,8 @@ from pathlib import Path
 from openai import OpenAI
 
 EMBED_DIR = Path("data/embeddings")
-INDEX_FILE = EMBED_DIR / "ljp_index.faiss"
-CHUNKS_FILE = EMBED_DIR / "ljp_text_chunks.json"
+INDEX_FILE = EMBED_DIR / "index.faiss"
+CHUNKS_FILE = EMBED_DIR / "text_chunks.json"
 
 
 class Retriever:

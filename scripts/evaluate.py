@@ -46,9 +46,9 @@ def poll_until_done(client: OpenAI, batch_id: str):
 
 
 def download_eval_results(client: OpenAI, status):
-    if status.status != "succeeded":
-        raise RuntimeError(f"Eval batch did not succeed: {status.status}")
-    output_file_id = status.output_files[0]
+    if status.status != "completed":
+        raise RuntimeError(f"Eval batch did not complete: {status.status}")
+    output_file_id = status.output_file_id
     print("Downloading eval results file:", output_file_id)
     content = client.files.content(output_file_id).text
     with EVAL_OUTPUT.open("w", encoding="utf-8") as f:
