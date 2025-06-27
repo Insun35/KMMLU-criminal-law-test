@@ -1,0 +1,14 @@
+# docker-compose.yml
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./:/app:cached
+    working_dir: /app
+    restart: "no"
