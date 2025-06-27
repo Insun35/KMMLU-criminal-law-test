@@ -10,7 +10,7 @@ from datasets import load_dataset
 # Configuration
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-BATCH_DIR = Path("data/openai_batch")
+BATCH_DIR = Path("data/batch")
 EVAL_INPUT = BATCH_DIR / "eval_input.jsonl"
 EVAL_OUTPUT = BATCH_DIR / "eval_output.jsonl"
 SCORE_FILE = Path("data/score.txt")

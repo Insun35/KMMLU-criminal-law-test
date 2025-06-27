@@ -4,7 +4,7 @@ from pathlib import Path
 from tqdm import tqdm
 from agent import prompt_tpl, llm
 
-BATCH_DIR = Path("data/openai_batch")
+BATCH_DIR = Path("data/batch")
 BATCH_DIR.mkdir(parents=True, exist_ok=True)
 BATCH_IN = BATCH_DIR / "eval_input.jsonl"
 
