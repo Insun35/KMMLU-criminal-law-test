@@ -17,12 +17,10 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 RAW_FILE = Path("data/raw/lbox_criminal.jsonl")
 BATCH_DIR = Path("data/openai_batch")
 BATCH_DIR.mkdir(parents=True, exist_ok=True)
-LBOX_BATCH_INPUT = BATCH_DIR / "lbox_batch_input.jsonl"
-LBOX_BATCH_OUTPUT = BATCH_DIR / "lbox_batch_output.jsonl"
 
 EMBED_DIR = Path("data/embeddings")
 EMBED_DIR.mkdir(parents=True, exist_ok=True)
-LBOX_CHUNKS_FILE = EMBED_DIR / "lbox_text_chunks.json"
+CHUNKS_FILE = EMBED_DIR / "text_chunks.json"
 
 BATCH_POLL_INTERVAL = 60  # seconds between status checks
 EMBED_MODEL = "text-embedding-3-small"
@@ -70,7 +68,7 @@ def build_batch_input(chunks: list[str], part: int):
             }
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
     # Save the chunks list to disk for later alignment
-    with LBOX_CHUNKS_FILE.open("w", encoding="utf-8") as f:
+    with CHUNKS_FILE.open("w", encoding="utf-8") as f:
         json.dump(chunks, f, ensure_ascii=False)
     print("Batch input JSONL and chunk list saved.")
     return path
@@ -106,7 +104,7 @@ def download_results(client: OpenAI, status, part: int):
     if status.status != "completed":
         raise RuntimeError(f"Batch job did not complete: {status.status}")
     output_path = BATCH_DIR / f"lbox_batch_output_{part}.jsonl"
-    file_id = status.output_file_id[0]
+    file_id = status.output_file_id
     print("Downloading results file:", file_id)
     content = client.files.content(file_id).text
     with output_path.open("w", encoding="utf-8") as f:
@@ -129,7 +127,7 @@ def build_faiss_index():
     vecs_np = np.array(embeddings, dtype="float32")
     index = faiss.IndexFlatIP(vecs_np.shape[1])
     index.add(vecs_np)
-    faiss.write_index(index, str(EMBED_DIR / "lbox_index.faiss"))
+    faiss.write_index(index, str(EMBED_DIR / "index.faiss"))
     print("FAISS index built and saved.")
 
 
