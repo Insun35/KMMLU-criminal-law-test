@@ -3,7 +3,6 @@ import json
 import time
 import re
 from pathlib import Path
-from itertools import islice
 from tqdm import tqdm
 
 import faiss
@@ -14,8 +13,8 @@ from dotenv import load_dotenv
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-RAW_FILE = Path("data/raw/lbox_criminal.jsonl")
-BATCH_DIR = Path("data/openai_batch")
+RAW_FILE = Path("data/raw/law_articles.jsonl")
+BATCH_DIR = Path("data/batch")
 BATCH_DIR.mkdir(parents=True, exist_ok=True)
 
 EMBED_DIR = Path("data/embeddings")
@@ -56,7 +55,7 @@ def split_chunks(chunks: list[str], max_size: int = 10000) -> list[list[str]]:
 
 
 def build_batch_input(chunks: list[str], part: int):
-    path = BATCH_DIR / f"lbox_batch_input_{part}.jsonl"
+    path = BATCH_DIR / f"batch_input_{part}.jsonl"
     with path.open("w", encoding="utf-8") as f:
         for idx, chunk in enumerate(chunks, start=1 + part * MAX_BATCH_SIZE):
             custom_id = f"chunk-{idx:05d}"
@@ -103,7 +102,7 @@ def wait_for_batch(client: OpenAI, batch_id: str):
 def download_results(client: OpenAI, status, part: int):
     if status.status != "completed":
         raise RuntimeError(f"Batch job did not complete: {status.status}")
-    output_path = BATCH_DIR / f"lbox_batch_output_{part}.jsonl"
+    output_path = BATCH_DIR / f"batch_output_{part}.jsonl"
     file_id = status.output_file_id
     print("Downloading results file:", file_id)
     content = client.files.content(file_id).text
@@ -116,7 +115,7 @@ def download_results(client: OpenAI, status, part: int):
 def build_faiss_index():
     all_records = []
     # Read all records from batch output files
-    for part_file in sorted(BATCH_DIR.glob("lbox_batch_output_*.jsonl")):
+    for part_file in sorted(BATCH_DIR.glob("batch_output_*.jsonl")):
         for line in open(part_file, encoding="utf-8"):
             all_records.append(json.loads(line))
     # Sort by custom_id to align with chunks
